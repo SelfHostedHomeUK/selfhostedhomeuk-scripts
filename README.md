@@ -6,8 +6,8 @@ Custom configurations, Docker stacks, and automation scripts for the home hostin
 This repository contains the infrastructure-as-code and supporting scripts for my hybrid UK-based home lab. It is designed to sync across a **Lenovo Server** (Primary) and a **selfhostedpi** (Raspberry Pi).
 
 ## 🛠 Hardware Environment
-*   **Lenovo Server:** Ubuntu-based core hosting native services and heavy Docker workloads.
-*   **selfhostedpi:** Raspberry Pi handling network services and automated backup redundancy.
+*   **Lenovo Server:** Ubuntu-based hosting Plex and Wireguard VM.
+*   **selfhostedpi:** Raspberry Pi running Docker stacks delivering Ghost blog and AI linked web apps.
 
 ## 📂 Project Structure
 *   **`docker/`**: Categorised YAML stacks.
