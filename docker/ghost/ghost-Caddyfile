@@ -1,0 +1,36 @@
+# Caddyfile — Self Hosted Home UK
+# Used with Ghost + Caddy on a Raspberry Pi behind a Cloudflare Tunnel
+#
+# auto_https is disabled because SSL/TLS termination is handled by Cloudflare.
+# Caddy serves HTTP locally; Cloudflare presents HTTPS to the outside world.
+# If you are not using a Cloudflare Tunnel and want Caddy to handle HTTPS
+# directly, remove the auto_https off block and change http:// to https://
+# on your domain blocks below.
+
+{
+    auto_https off
+}
+
+# Ghost blog — replace with your domain
+http://yourdomain.com {
+    reverse_proxy ghost:2368 {
+        # Pass correct headers through to Ghost so it knows the real host and protocol
+        # These are important for Ghost to generate correct URLs in emails and canonical tags
+        header_up Host              {host}
+        header_up X-Forwarded-Host  {host}
+        header_up X-Forwarded-Proto http
+        header_up X-Forwarded-For   {remote}
+        header_up X-Real-IP         {remote}
+
+        transport http {
+            keepalive 30s
+        }
+    }
+}
+
+# Optional: Umami analytics on a subdomain — remove if not using Umami
+# Umami should be running as a separate Docker stack on port 3000
+# Replace with your subdomain
+http://umami.yourdomain.com {
+    reverse_proxy umami:3000
+}

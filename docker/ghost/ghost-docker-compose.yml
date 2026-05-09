@@ -1,0 +1,39 @@
+services:
+  ghost:
+    image: ghost:alpine
+    restart: always
+    environment:
+      # Replace with your domain — must match your Caddyfile and Ghost admin URL setting
+      url: http://yourdomain.com
+      NODE_ENV: production
+      # Ghost uses SQLite by default — lightweight and perfectly adequate for a personal blog
+      database__client: sqlite3
+      database__connection__filename: /var/lib/ghost/content/data/ghost.db
+    volumes:
+      - ghost-content:/var/lib/ghost/content
+    networks:
+      - ghost-net
+
+  caddy:
+    image: caddy:2-alpine
+    restart: always
+    ports:
+      # Port 80 only — HTTPS is handled upstream by Cloudflare Tunnel
+      # If you are not using a Cloudflare Tunnel, you will need to add port 443
+      # and remove auto_https off from the Caddyfile
+      - "80:80"
+    volumes:
+      # Caddyfile must be in the same directory as this compose file
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy-data:/data
+      - caddy-config:/config
+    networks:
+      - ghost-net
+
+volumes:
+  ghost-content:
+  caddy-data:
+  caddy-config:
+
+networks:
+  ghost-net:
