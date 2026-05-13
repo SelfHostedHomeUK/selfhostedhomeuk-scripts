@@ -5,11 +5,11 @@ SUBNET="192.168.1.192/27"
 WG_DIR="/etc/wireguard"
 
 echo "========================================"
-echo "  Roku VPN Gateway Switcher (Final)"
+echo "  Roku VPN Gateway Switcher"
 echo "========================================"
 echo ""
 
-# Auto-detect LAN interface (best practice for your setup)
+# Auto-detect LAN interface
 LAN_IF=$(ip route | awk '/default/ {print $5}')
 
 if [ -z "$LAN_IF" ]; then
@@ -40,7 +40,6 @@ if [ -n "$OLD_IF" ]; then
     echo ""
     echo ">> Stopping active interface: $OLD_IF"
 
-    systemctl stop wg-quick@"$OLD_IF" 2>/dev/null || true
     wg-quick down "$OLD_IF" 2>/dev/null || true
 
     echo ">> Removing old firewall rules..."
@@ -56,7 +55,7 @@ fi
 echo ""
 echo ">> Starting new interface: $NEW_IF"
 
-systemctl start wg-quick@"$NEW_IF"
+wg-quick up "$NEW_IF"
 
 sleep 3
 
@@ -66,20 +65,20 @@ sleep 3
 echo ""
 echo ">> Checking WireGuard handshake..."
 
-if ! wg show "$NEW_IF" | grep -q "latest handshake"; then
-    echo "ERROR: No handshake detected — aborting"
+for i in {1..10}; do
+    if wg show "$NEW_IF" 2>/dev/null | grep -q "latest handshake"; then
+        echo ">> Handshake confirmed."
+        break
+    fi
+    echo "   Waiting for handshake... attempt $i/10"
+    sleep 3
+done
+
+if ! wg show "$NEW_IF" 2>/dev/null | grep -q "latest handshake"; then
+    echo "ERROR: No handshake after 30 seconds -- aborting"
     wg-quick down "$NEW_IF" 2>/dev/null || true
     exit 1
 fi
-
-# ----------------------------
-# SYSTEMD PERSISTENCE
-# ----------------------------
-echo ""
-echo ">> Setting boot persistence..."
-
-systemctl disable wg-quick@* 2>/dev/null || true
-systemctl enable wg-quick@"$NEW_IF"
 
 # ----------------------------
 # APPLY CLEAN IPTABLES (NO DUPLICATES)
@@ -87,11 +86,11 @@ systemctl enable wg-quick@"$NEW_IF"
 echo ""
 echo ">> Applying firewall rules..."
 
-# Forward LAN → VPN
+# Forward LAN to VPN
 iptables -C FORWARD -o "$NEW_IF" -s "$SUBNET" -j ACCEPT 2>/dev/null || \
 iptables -A FORWARD -o "$NEW_IF" -s "$SUBNET" -j ACCEPT
 
-# Forward VPN → LAN (return traffic)
+# Forward VPN to LAN (return traffic)
 iptables -C FORWARD -i "$NEW_IF" -o "$LAN_IF" -d "$SUBNET" -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT 2>/dev/null || \
 iptables -A FORWARD -i "$NEW_IF" -o "$LAN_IF" -d "$SUBNET" -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
 
@@ -124,8 +123,7 @@ echo "NAT rules:"
 iptables -t nat -L POSTROUTING -n -v --line-numbers
 
 echo ""
-echo "LAN interface used:"
-echo "$LAN_IF"
+echo "LAN interface used: $LAN_IF"
 
 echo ""
 echo "========================================"
