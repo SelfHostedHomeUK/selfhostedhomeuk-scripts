@@ -2,7 +2,7 @@
 
 Backup scripts for Docker volumes and Postgres databases to network-mounted storage, with safeguards against the mount silently failing and being written to as an ordinary local directory instead.
 
-Background on why this matters: [The Blog Died. Pt3: The Backups That Worked but Hadn't](https://selfhostedhome.co.uk/the-blog-died-pt3-the-backups-that-worked-but-hadnt/)
+Background on why this matters: [The Blog Died. Pt3: The Backups That Worked but Hadn't](https://selfhostedhome.co.uk/the-blog-died-pt3-the-backups-that-had-worked-but-hadnt/)
 
 ## 📜 Scripts
 
