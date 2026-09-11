@@ -1,4 +1,8 @@
 #!/bin/bash
+#
+# Full write-up and context: https://selfhostedhome.co.uk/manual-switch-to-resilient-system-wireguard-script-suite/
+# Adapt interface names and SUBNET variable for your own setup before use.
+#
 set -euo pipefail
 
 SUBNET="192.168.1.192/27"
